@@ -11,7 +11,10 @@ function buildMetadata(sample) {
     Object.entries(response).forEach(([key, value]) => {
       var row = table.append("tr");
       var cell = row.append("td").text(key+": "+value).append("br")
-
+      if (key === "WFREQ") {
+        console.log(value);
+        buildGauge(value);
+      };
     });
     // Use d3 to select the panel with id of `#sample-metadata` 
     // Use `.html("") to clear any existing metadata
@@ -20,7 +23,8 @@ function buildMetadata(sample) {
     // tags for each key-value in the metadata.
 
     // BONUS: Build the Gauge Chart
-    // buildGauge(data.WFREQ);
+    //console.log(sample.WFREQ.value)
+    //buildGauge(sample.WFREQ);
   });
 }
 
@@ -43,19 +47,13 @@ function buildCharts(sample) {
     }
     arrSamplesAll.sort(function(i, j){return j.value - i.value});
     
-    var values = []
-    var labels = []
-    var ids = []
-    
-    arrSamplesAll.forEach(sample => {
-    // arrSamplesTT.forEach(sample => {
-      values.push(sample.value)
-      ids.push(sample.id)
-      labels.push(sample.label)
-    })
+    var values = arrSamplesAll.map(sample => sample.value)
+    var labels = arrSamplesAll.map(sample => sample.label)
+    var ids = arrSamplesAll.map(sample => sample.id)
     // console.log(values)
     // console.log(labels)    
     
+    //setup custom color array
     colors = colorArray
 
     // @TODO: Build a Bubble Chart using the sample data
@@ -64,6 +62,9 @@ function buildCharts(sample) {
       "y": values,
       "mode": "markers",
       "type": "scatter",
+      "ids":  ids,
+      "hovertext": labels,
+      "hoverinfo":"x+y+text",
       "marker": {
         "symbol": "circle",
         "opacity": 0.6,
@@ -73,13 +74,23 @@ function buildCharts(sample) {
         "sizemode": "diameter",
         "color": ids,
         "colorscale": "Portland",
-        //"autocolorscale": true
         },
     }]
+
+    var scatterLayout = {
+      "xaxis": {
+        "visible": true,
+        "title": "OTU ID",
+        "color": "black",
+      }
+    }
+    Plotly.newPlot("bubble",scatterData, scatterLayout, {responsive: true})
+
     // @TODO: Build a Pie Chart
+    // HINT: You will need to use slice() to grab the top 10 sample_values,
+    // otu_ids, and labels (10 each).
     var pieData = [{
       "values": arrSliceTen(values),
-      // "values": arrSamplesAll.values,
       "labels": arrSliceTen(ids),
       "name": "Belly Button Data",
       "hovertext": arrSliceTen(labels),
@@ -90,12 +101,9 @@ function buildCharts(sample) {
       } 
    }]
    var pieLayout = {
-     title: `Sample: ${sample}`
+
    }
-   Plotly.newPlot("pie", pieData, pieLayout)
-   Plotly.newPlot("bubble",scatterData)
-    // HINT: You will need to use slice() to grab the top 10 sample_values,
-    // otu_ids, and labels (10 each).
+   Plotly.newPlot("pie", pieData, pieLayout, {responsive: true})
 
   });
 }
